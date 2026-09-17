@@ -3,7 +3,10 @@ import Layout from '../layouts/Layout.astro';
 import { getCollection, getEntry } from 'astro:content';
 
 const site = await getEntry('site', 'main');
-const members = await getCollection('members');
+const memberOrder = ['John', 'Tom L.', 'G.S.V.', 'Predark', 'Désert'];
+const members = (await getCollection('members')).sort(
+  (a, b) => memberOrder.indexOf(a.data.name) - memberOrder.indexOf(b.data.name)
+);
 const bioParagraphs = site.data.bioText.split('\n\n');
 const statementParagraphs = site.data.statement ? site.data.statement.split('\n\n') : [];
 
@@ -12,7 +15,7 @@ function linkify(text: string) {
 }
 
 const hoverPositions: Record<string, string> = {
-  'G.S.V.': 'center 72%',
+  'G.S.V.': 'center 58%',
   'Tom L.': 'center 82%',
   'Predark': 'center 22%',
 };
