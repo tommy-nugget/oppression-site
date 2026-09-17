@@ -49,9 +49,7 @@ const albumSchemas = releases.map((r) => ({
             <span class="badge">{r.data.releaseType.toUpperCase()} — {r.data.releaseDate.getFullYear()}</span>
             {r.data.label && <span class="badge">{r.data.label}</span>}
             {r.data.tracklist.length > 0 && <span class="badge">{totalDuration(r.data.tracklist)}</span>}
-            {r.data.links[0] && (
-              <a class="btn cover-cta" href={r.data.links[0].url} target="_blank" rel="noopener">Get Your Copy Here !</a>
-            )}
+            <a class="btn cover-cta" href="https://folter666shop.de/en/search?search=Oppression" target="_blank" rel="noopener">Get Your Copy Here !</a>
           </div>
 
           <div class="discography-row">

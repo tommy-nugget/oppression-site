@@ -10,7 +10,7 @@ const nextShows = upcoming.slice(0, 2);
 const releases = await getCollection('discography');
 const sortedReleases = releases.sort((a, b) => b.data.releaseDate.getTime() - a.data.releaseDate.getTime());
 const featured = sortedReleases.find((r) => r.data.featured) ?? sortedReleases[0];
-const albumLink = featured?.data.links?.[0]?.url ?? '/discography';
+const albumLink = 'https://folter666shop.de/en/search?search=Oppression';
 
 const reviews = await getCollection('reviews');
 const featuredReview = reviews.find((r) => r.data.language === 'EN') ?? reviews[0];
