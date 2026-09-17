@@ -1,7 +1,21 @@
 import { defineCollection, reference, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+import fs from 'node:fs/promises';
+
+function singleEntryLoader(name: string, path: string) {
+  return {
+    name,
+    load: async ({ store, parseData }: any) => {
+      const raw = JSON.parse(await fs.readFile(new URL(path, import.meta.url), 'utf-8'));
+      const data = await parseData({ id: 'main', data: raw });
+      store.clear();
+      store.set({ id: 'main', data });
+    },
+  };
+}
 
 const concerts = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/concerts' }),
   schema: z.object({
     date: z.date(),
     city: z.string(),
@@ -15,7 +29,7 @@ const concerts = defineCollection({
 });
 
 const reviews = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/reviews' }),
   schema: z.object({
     outlet: z.string(),
     language: z.string(),
@@ -28,7 +42,7 @@ const reviews = defineCollection({
 });
 
 const discography = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/discography' }),
   schema: z.object({
     title: z.string(),
     releaseType: z.enum(['album', 'ep', 'single', 'split']),
@@ -45,7 +59,7 @@ const discography = defineCollection({
 });
 
 const merch = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/merch' }),
   schema: z.object({
     name: z.string(),
     category: z.enum(['music', 'apparel', 'patch', 'pin', 'other']),
@@ -57,7 +71,7 @@ const merch = defineCollection({
 });
 
 const members = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/members' }),
   schema: z.object({
     name: z.string(),
     instrument: z.string(),
@@ -68,7 +82,7 @@ const members = defineCollection({
 });
 
 const gallery = defineCollection({
-  type: 'data',
+  loader: singleEntryLoader('gallery', './content/gallery/main.json'),
   schema: z.object({
     photos: z.array(z.object({
       image: z.string(),
@@ -82,7 +96,7 @@ const gallery = defineCollection({
 });
 
 const site = defineCollection({
-  type: 'data',
+  loader: singleEntryLoader('site', './content/site/main.json'),
   schema: z.object({
     bioText: z.string(),
     bioPhoto: z.string().optional(),
