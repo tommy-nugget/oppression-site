@@ -1,0 +1,144 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection, getEntry } from 'astro:content';
+
+const releases = (await getCollection('discography')).sort(
+  (a, b) => b.data.releaseDate.getTime() - a.data.releaseDate.getTime()
+);
+const site = await getEntry('site', 'main');
+
+function totalDuration(tracklist: { duration: string }[]) {
+  const totalSeconds = tracklist.reduce((sum, t) => {
+    const [min, sec] = t.duration.split(':').map(Number);
+    return sum + min * 60 + sec;
+  }, 0);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+const albumSchemas = releases.map((r) => ({
+  '@context': 'https://schema.org',
+  '@type': 'MusicAlbum',
+  name: r.data.title,
+  datePublished: r.data.releaseDate.toISOString().slice(0, 10),
+  byArtist: { '@type': 'MusicGroup', name: 'Oppression' },
+  ...(r.data.label ? { recordLabel: { '@type': 'Organization', name: r.data.label } } : {}),
+  ...(r.data.cover ? { image: new URL(r.data.cover, Astro.site).toString() } : {}),
+  ...(r.data.tracklist.length > 0 ? { numTracks: r.data.tracklist.length } : {}),
+}));
+---
+<Layout
+  title="Discography — Oppression | No Safe Place"
+  description="No Safe Place — the debut album from French black metal band Oppression, out now via Folter Records."
+  image={releases[0]?.data.cover}
+>
+  <h1 class="sr-only">Oppression — Discography</h1>
+  {albumSchemas.map((schema) => (
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  ))}
+  <div class="wide">
+    <div class="wide-inner">
+      {releases.map((r) => {
+        const slug = r.id.replace(/\.md$/, '');
+        return (
+        <div class="discography-release">
+          <div class="big" style="font-size:2.2rem">{r.data.title}</div>
+
+          <div class="badge-row">
+            <span class="badge">{r.data.releaseType.toUpperCase()} — {r.data.releaseDate.getFullYear()}</span>
+            {r.data.label && <span class="badge">{r.data.label}</span>}
+            {r.data.tracklist.length > 0 && <span class="badge">{totalDuration(r.data.tracklist)}</span>}
+            {r.data.links[0] && (
+              <a class="btn cover-cta" href={r.data.links[0].url} target="_blank" rel="noopener">Get Your Copy Here !</a>
+            )}
+          </div>
+
+          <div class="discography-row">
+            <div class="thumb cover-thumb cover-thumb-soft-zoom">
+              {r.data.cover && <img src={r.data.cover} alt={`${r.data.title} cover`} />}
+            </div>
+            <div>
+              {r.data.spotifyAlbumId && (
+                <div
+                  class="spotify-compact spotify-player"
+                  id={`spotify-player-${slug}`}
+                  data-spotify-uri={`spotify:album:${r.data.spotifyAlbumId}`}
+                  style="border-radius:12px; overflow:hidden; height:152px;"
+                ></div>
+              )}
+              {r.data.description && r.data.description.trim().split('\n\n').map((p) => (
+                <p class="lead justify discography-description">{p}</p>
+              ))}
+            </div>
+          </div>
+
+          {r.data.tracklist.length > 0 && (
+            <ol class="tracklist-grid">
+              {r.data.tracklist.map((t) => (
+                t.spotifyId ? (
+                  <li>
+                    <button type="button" class="track-play" data-player={`spotify-player-${slug}`} data-track-uri={`spotify:track:${t.spotifyId}`}>
+                      {t.title} <span style="color:var(--muted)">({t.duration})</span>
+                      <svg class="track-note-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 18V5l12-2v13" />
+                        <circle cx="6" cy="18" r="3" />
+                        <circle cx="18" cy="16" r="3" />
+                      </svg>
+                    </button>
+                  </li>
+                ) : (
+                  <li>{t.title} <span style="color:var(--muted)">({t.duration})</span></li>
+                )
+              ))}
+            </ol>
+          )}
+
+          {r.data.links.length > 0 && (
+            <div class="btn-row">
+              {r.data.links.map((l) => (
+                <a class="btn" href={l.url}>{l.name}</a>
+              ))}
+            </div>
+          )}
+        </div>
+      );})}
+    </div>
+  </div>
+</Layout>
+
+<script>
+  declare global {
+    interface Window {
+      onSpotifyIframeApiReady?: (IFrameAPI: any) => void;
+    }
+  }
+
+  const controllers = new Map<string, any>();
+
+  window.onSpotifyIframeApiReady = (IFrameAPI: any) => {
+    document.querySelectorAll<HTMLElement>('.spotify-player').forEach((el) => {
+      const uri = el.dataset.spotifyUri;
+      if (!uri) return;
+      IFrameAPI.createController(el, { uri, width: '100%', height: '152' }, (controller: any) => {
+        controllers.set(el.id, controller);
+      });
+    });
+  };
+
+  const script = document.createElement('script');
+  script.src = 'https://open.spotify.com/embed/iframe-api/v1';
+  script.async = true;
+  document.body.appendChild(script);
+
+  document.querySelectorAll<HTMLButtonElement>('.track-play').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const playerId = btn.dataset.player!;
+      const uri = btn.dataset.trackUri!;
+      const controller = controllers.get(playerId);
+      if (!controller) return;
+      controller.loadUri(uri);
+      controller.play();
+    });
+  });
+</script>

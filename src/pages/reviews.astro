@@ -1,0 +1,91 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+// Curated order (not alphabetical/auto): English pair first, then German,
+// then Japanese+French paired together, then the rest — keeps each row
+// language-grouped rather than mixed.
+const reviewOrder = [
+  'black-metal-zine',
+  'ammo-underground',
+  'thrashocore',
+  'moyashikko-metaler',
+  'zware-metalen',
+  'no-clean-singing',
+  'earshot',
+  'metal-factory-ch',
+  'metal-underground-at',
+  'vampster',
+];
+const reviews = (await getCollection('reviews')).sort((a, b) => {
+  const aSlug = a.id.replace(/\.md$/, '');
+  const bSlug = b.id.replace(/\.md$/, '');
+  return reviewOrder.indexOf(aSlug) - reviewOrder.indexOf(bSlug);
+});
+
+const flags: Record<string, string> = {
+  FR: 'fr.svg',
+  DE: 'de.svg',
+  GER: 'de.svg',
+  EN: 'gb.svg',
+  NL: 'nl.svg',
+  JP: 'jp.svg',
+};
+
+function flagFor(language: string) {
+  return flags[language.toUpperCase()];
+}
+
+const releases = (await getCollection('discography')).sort(
+  (a, b) => b.data.releaseDate.getTime() - a.data.releaseDate.getTime()
+);
+const featured = releases.find((r) => r.data.featured) ?? releases[0];
+const releaseDateLabel = featured?.data.releaseDate.toLocaleDateString('en-US', {
+  month: 'long', day: 'numeric', year: 'numeric',
+});
+---
+<Layout title="Press Reviews — Oppression" description="Press reviews for Oppression's debut album 'No Safe Place', out now via Folter Records.">
+  <div class="wide">
+    <div class="wide-inner">
+      <h1 class="page-title-centered">Press Reviews</h1>
+
+      {featured && (
+        <div class="reviews-intro">
+          <div class="thumb cover-thumb">
+            <img src={featured.data.cover} alt={`${featured.data.title} cover`} />
+          </div>
+          <div>
+            <div class="reviews-intro-eyebrow">{featured.data.title} — {featured.data.releaseDate.getFullYear()}</div>
+            <p class="lead" style="max-width:none;">
+              {featured.data.releaseType === 'album' ? 'Debut album' : featured.data.title} out {releaseDateLabel}
+              {featured.data.label && <> via {featured.data.label}</>}. Selected press coverage below.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div class="review-list">
+        {reviews.map((r) => (
+          <div class="review-row">
+            <div class="review-label">
+              <div class="review-outlet">
+                {flagFor(r.data.language) && <img src={`/images/flags/${flagFor(r.data.language)}`} alt="" />}
+                <span>{r.data.outlet} ({r.data.language})</span>
+              </div>
+            </div>
+            <div class="review-quote-col">
+              <p class="review-quote">{r.data.excerpt}</p>
+              {r.data.translationEn && <p class="review-quote translation">{r.data.translationEn}</p>}
+              <a class="review-link" href={r.data.link} target="_blank" rel="noopener">read review</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  /* TEMP test: Inter (non-italic), this page only */
+  .review-quote { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 500; }
+</style>

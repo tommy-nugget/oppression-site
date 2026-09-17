@@ -1,0 +1,67 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection, getEntry } from 'astro:content';
+
+const site = await getEntry('site', 'main');
+const members = await getCollection('members');
+const bioParagraphs = site.data.bioText.split('\n\n');
+const statementParagraphs = site.data.statement ? site.data.statement.split('\n\n') : [];
+
+function linkify(text: string) {
+  return text.replace(/No Safe Place/g, '<a class="link" href="/discography">No Safe Place</a>');
+}
+
+const hoverPositions: Record<string, string> = {
+  'G.S.V.': 'center 72%',
+  'Tom L.': 'center 82%',
+  'Predark': 'center 22%',
+};
+---
+<Layout
+  title="Bio — Oppression | French Black Metal Band"
+  description="Formed in 2024 in Bordeaux, France, Oppression brings together five musicians driven by a shared vision of raw, uncompromising extreme metal."
+  image={site.data.bioPhoto}
+  floatingHeader
+>
+  <h1 class="sr-only">Oppression — Bio</h1>
+  {site.data.bioPhoto && (
+    <div class="hero-media hero-fade">
+      <img src={site.data.bioPhoto} alt="Oppression band photo" class="photo-treated hero-muted" style="object-position: center 15%;" />
+      <div class="hero-top-scrim"></div>
+      {statementParagraphs.length > 0 && (
+        <>
+          <div class="hero-scrim"></div>
+          <div class="hero-statement">
+            {statementParagraphs.map((p) => <p>{p}</p>)}
+            <img src="/images/brand/oppression-cross.png" alt="" class="hero-statement-icon" />
+          </div>
+        </>
+      )}
+    </div>
+  )}
+
+  <div class="grid-members full-bleed" style="margin-top:2.5rem;">
+    {members.map((m) => (
+      <div class="member-card">
+        <div class="thumb member-thumb photo-halo">
+          {m.data.photo && <img src={m.data.photo} alt={m.data.name} class="photo-treated member-photo-base" />}
+          {m.data.livePhoto && (
+            <img
+              src={m.data.livePhoto}
+              alt={`${m.data.name} live`}
+              class="photo-treated member-photo-hover"
+              style={hoverPositions[m.data.name] ? `object-position: ${hoverPositions[m.data.name]};` : undefined}
+            />
+          )}
+        </div>
+        <div class="big" style="font-size:1.1rem">{m.data.name}</div>
+        <div class="small">{m.data.instrument}</div>
+        {m.data.bio && <p class="small">{m.data.bio}</p>}
+      </div>
+    ))}
+  </div>
+
+  <div style="margin-top:2.5rem;">
+    {bioParagraphs.map((p) => <p class="lead bio-copy" set:html={linkify(p)} />)}
+  </div>
+</Layout>

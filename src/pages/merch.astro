@@ -1,0 +1,143 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const products = await getCollection('merch');
+
+// Left-to-right display order for the Music row (not alphabetical).
+const musicOrder = ['vinyl-marbled-gold', 'cd-no-safe-place', 'vinyl-rites'];
+const music = products
+  .filter((p) => p.data.category === 'music')
+  .sort((a, b) => musicOrder.indexOf(a.id.replace(/\.md$/, '')) - musicOrder.indexOf(b.id.replace(/\.md$/, '')));
+const rest = products.filter((p) => p.data.category !== 'music');
+const lightboxItems = [...music, ...rest];
+
+// Product photos have varying amounts of empty white margin baked in (typical
+// print-on-demand mockups). Rather than re-crop the files, scale the image
+// within its frame (CSS transform, overflow hidden) so each product fills
+// the mat similarly — values tuned per photo from its actual content size.
+const photoZoom: Record<string, number> = {
+  'tshirt-no-safe-place.jpg': 1.45,
+  'tshirt-emblem.jpg': 1.45,
+  'patch-shaped.jpg': 2.1,
+  'patch-rectangle.jpg': 1.9,
+  'patch-round.jpg': 1.8,
+  'pin.jpg': 1.08,
+};
+function zoomFor(photo?: string) {
+  if (!photo) return 1;
+  return photoZoom[photo.split('/').pop() ?? ''] ?? 1;
+}
+---
+<Layout title="Merch — Oppression | Official Store" description="Official Oppression merch — CD, vinyl, apparel and accessories.">
+  <div class="wide">
+    <div class="wide-inner">
+      <h1 class="page-title-centered">Merch</h1>
+
+      {music.length > 0 && <h2 class="merch-section-title music-title">Music</h2>}
+      {music.length > 0 && (
+        <div class="merch-music-grid">
+          {music.map((item, i) => (
+            <div class="merch-music-item">
+              <button type="button" class="thumb cover-thumb merch-lightbox-trigger" data-index={i} aria-label={`View ${item.data.name} in full size`}>
+                {item.data.photo && <img src={item.data.photo} alt={item.data.name} />}
+              </button>
+              <div class="big">{item.data.name}</div>
+              {item.data.price && <div class="merch-price">{item.data.price}</div>}
+              {item.data.description && <p class="lead" style="max-width:none;">{item.data.description}</p>}
+              <div class="btn-row">
+                <a class="btn" href={item.data.shopLink} target="_blank" rel="noopener">Shop</a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {rest.length > 0 && (
+        <>
+          <h2 class="merch-section-title">Apparel &amp; Accessories</h2>
+          <div class="merch-grid">
+            {rest.map((p, i) => (
+              <div class="merch-card">
+                <button type="button" class="merch-photo merch-lightbox-trigger" data-index={music.length + i} aria-label={`View ${p.data.name} in full size`}>
+                  {p.data.photo && <img src={p.data.photo} alt={p.data.name} style={`transform: scale(${zoomFor(p.data.photo)});`} />}
+                </button>
+                <div class="big">{p.data.name}</div>
+                {p.data.price && <div class="merch-price">{p.data.price}</div>}
+                {p.data.description && <p class="small">{p.data.description}</p>}
+                <div class="btn-row">
+                  <a class="btn" href={p.data.shopLink} target="_blank" rel="noopener">Shop</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
+    <button type="button" class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous photo">&#8249;</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+    <button type="button" class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next photo">&#8250;</button>
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
+</Layout>
+
+<script>
+  const triggers = Array.from(document.querySelectorAll<HTMLButtonElement>('.merch-lightbox-trigger'));
+  const data = triggers.map((el) => {
+    const img = el.querySelector('img');
+    return { src: img?.src ?? '', caption: img?.alt ?? '' };
+  });
+
+  const lightbox = document.getElementById('lightbox')!;
+  const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+  const lightboxCaption = document.getElementById('lightbox-caption')!;
+  let current = 0;
+
+  function open(index: number) {
+    current = index;
+    show();
+    lightbox.hidden = false;
+  }
+
+  function show() {
+    const entry = data[current];
+    lightboxImg.src = entry.src;
+    lightboxImg.alt = entry.caption;
+    lightboxCaption.textContent = entry.caption;
+  }
+
+  function close() {
+    lightbox.hidden = true;
+    lightboxImg.src = '';
+  }
+
+  function next() {
+    current = (current + 1) % data.length;
+    show();
+  }
+
+  function prev() {
+    current = (current - 1 + data.length) % data.length;
+    show();
+  }
+
+  triggers.forEach((el, i) => el.addEventListener('click', () => open(i)));
+  document.getElementById('lightbox-close')!.addEventListener('click', close);
+  document.getElementById('lightbox-next')!.addEventListener('click', next);
+  document.getElementById('lightbox-prev')!.addEventListener('click', prev);
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) close();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (lightbox.hidden) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft') prev();
+  });
+</script>

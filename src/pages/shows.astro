@@ -1,0 +1,159 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const all = await getCollection('concerts');
+const now = new Date();
+const upcoming = all.filter((c) => c.data.date >= now).sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
+const past = all.filter((c) => c.data.date < now).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+function formatDate(d: Date) {
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+const countryCodes: Record<string, string> = {
+  France: 'FR', Germany: 'DE', Belgium: 'BE', Switzerland: 'CH', Spain: 'ES',
+  Italy: 'IT', Austria: 'AT', Netherlands: 'NL', 'United Kingdom': 'UK', 'United States': 'US',
+};
+function countryCode(country: string) {
+  return countryCodes[country] ?? country;
+}
+
+function otherActs(lineup?: string) {
+  if (!lineup) return null;
+  const acts = lineup.split(',').map((a) => a.trim()).filter((a) => a.toLowerCase() !== 'oppression');
+  return acts.length > 0 ? acts.join(', ') : null;
+}
+
+const eventSchemas = upcoming.map((c) => ({
+  '@context': 'https://schema.org',
+  '@type': 'MusicEvent',
+  name: c.data.eventName,
+  startDate: c.data.date.toISOString().slice(0, 10),
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  location: {
+    '@type': 'Place',
+    name: c.data.venue,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: c.data.city,
+      addressCountry: countryCode(c.data.country),
+    },
+  },
+  performer: { '@type': 'MusicGroup', name: 'Oppression' },
+  ...(c.data.ticketLink ? { offers: { '@type': 'Offer', url: c.data.ticketLink, availability: 'https://schema.org/InStock' } } : {}),
+}));
+---
+<Layout
+  title="Shows — Oppression | Tour Dates & Concerts"
+  description="Upcoming and past Oppression concerts and festival appearances."
+  image="/images/gallery/promo-torches-extended.jpg"
+  floatingFooter
+>
+  {eventSchemas.map((schema) => (
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  ))}
+  <div class="wide shows-content">
+    <div class="wide-inner">
+      <h1 class="page-title-centered">Shows</h1>
+
+      <h2 class="section-title-framed">Upcoming</h2>
+      <div class="shows-list">
+        {upcoming.map((c) => (
+          <div class="shows-row">
+            <div class="shows-date">{formatDate(c.data.date)}</div>
+            <div class="shows-place">{c.data.city}, {countryCode(c.data.country)}</div>
+            <div class="shows-event">{c.data.eventName}</div>
+            <div class="shows-action">
+              {c.data.ticketLink
+                ? <a class="shows-ticket-link" href={c.data.ticketLink} target="_blank" rel="noopener">Tickets</a>
+                : <span class="shows-status">TBA</span>}
+            </div>
+          </div>
+        ))}
+        {upcoming.length === 0 && <p class="small">No upcoming shows announced yet.</p>}
+      </div>
+      <h2 class="section-title-framed">Past</h2>
+      <div class="shows-list past">
+        {past.map((c) => (
+          c.data.poster ? (
+            <button
+              type="button"
+              class="shows-row shows-row-clickable"
+              data-poster={c.data.poster}
+              data-caption={`${c.data.eventName} — ${c.data.city}, ${countryCode(c.data.country)} — ${formatDate(c.data.date)}`}
+            >
+              <div class="shows-date">{formatDate(c.data.date)}</div>
+              <div class="shows-place">{c.data.city}, {countryCode(c.data.country)}</div>
+              <div class="shows-event">
+                {c.data.eventName}
+                <svg class="poster-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                {otherActs(c.data.lineup) && <div class="shows-lineup">with {otherActs(c.data.lineup)}</div>}
+              </div>
+              <div class="shows-action"><span class="shows-status">Past</span></div>
+            </button>
+          ) : (
+            <div class="shows-row">
+              <div class="shows-date">{formatDate(c.data.date)}</div>
+              <div class="shows-place">{c.data.city}, {countryCode(c.data.country)}</div>
+              <div class="shows-event">{c.data.eventName}</div>
+              <div class="shows-action"><span class="shows-status">Past</span></div>
+            </div>
+          )
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-media hero-footer-photo">
+    <img src="/images/gallery/promo-torches-extended.jpg" alt="Oppression live" class="photo-treated hero-bw-soft" style="object-position: center 32%;" />
+    <div class="hero-top-scrim"></div>
+    <div class="hero-scrim"></div>
+  </div>
+
+  <div class="lightbox" id="poster-lightbox" hidden>
+    <button type="button" class="lightbox-close" id="poster-lightbox-close" aria-label="Close">&times;</button>
+    <img class="lightbox-img" id="poster-lightbox-img" src="" alt="" />
+    <div class="lightbox-caption" id="poster-lightbox-caption"></div>
+  </div>
+</Layout>
+
+<script>
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.shows-row-clickable'));
+  const lightbox = document.getElementById('poster-lightbox')!;
+  const lightboxImg = document.getElementById('poster-lightbox-img') as HTMLImageElement;
+  const lightboxCaption = document.getElementById('poster-lightbox-caption')!;
+
+  function openPoster(src: string, caption: string) {
+    lightboxImg.src = src;
+    lightboxImg.alt = caption;
+    lightboxCaption.textContent = caption;
+    lightbox.hidden = false;
+  }
+
+  function closePoster() {
+    lightbox.hidden = true;
+    lightboxImg.src = '';
+  }
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      openPoster(btn.dataset.poster!, btn.dataset.caption!);
+    });
+  });
+
+  document.getElementById('poster-lightbox-close')!.addEventListener('click', closePoster);
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closePoster();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (lightbox.hidden) return;
+    if (e.key === 'Escape') closePoster();
+  });
+</script>

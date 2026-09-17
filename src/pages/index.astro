@@ -1,0 +1,148 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection, getEntry } from 'astro:content';
+
+const concerts = await getCollection('concerts');
+const now = new Date();
+const upcoming = concerts.filter((c) => c.data.date >= now).sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
+const nextShows = upcoming.slice(0, 2);
+
+const releases = await getCollection('discography');
+const sortedReleases = releases.sort((a, b) => b.data.releaseDate.getTime() - a.data.releaseDate.getTime());
+const featured = sortedReleases.find((r) => r.data.featured) ?? sortedReleases[0];
+const albumLink = featured?.data.links?.[0]?.url ?? '/discography';
+
+const reviews = await getCollection('reviews');
+const featuredReview = reviews.find((r) => r.data.language === 'EN') ?? reviews[0];
+
+const site = await getEntry('site', 'main');
+const members = await getCollection('members');
+
+const musicGroupSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MusicGroup',
+  name: 'Oppression',
+  genre: 'Black Metal',
+  foundingLocation: {
+    '@type': 'Place',
+    name: 'Bordeaux, France',
+  },
+  url: Astro.site?.toString(),
+  image: new URL('/images/promo/band-outside.jpg', Astro.site).toString(),
+  sameAs: site.data.socialLinks.map((s) => s.url),
+  member: members.map((m) => ({
+    '@type': 'Person',
+    name: m.data.name,
+  })),
+};
+
+function formatShowDate(d: Date) {
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+const countryCodes: Record<string, string> = {
+  France: 'FR', Germany: 'DE', Belgium: 'BE', Switzerland: 'CH', Spain: 'ES',
+  Italy: 'IT', Austria: 'AT', Netherlands: 'NL', 'United Kingdom': 'UK', 'United States': 'US',
+};
+function countryCode(country: string) {
+  return countryCodes[country] ?? country;
+}
+
+function youtubeEmbedUrl(url: string) {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w-]+)/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+}
+---
+<Layout title="Oppression — French Black Metal | Official Website" floatingHeader>
+  <script type="application/ld+json" set:html={JSON.stringify(musicGroupSchema)} />
+  <h1 class="sr-only">Oppression — French Black Metal Band</h1>
+  <div class="home-wrap">
+    <div class="home-backdrop"></div>
+    <div class="home-content">
+      <div class="hero-media hero-fade hero-home">
+        <img src="/images/promo/band-outside.jpg" alt="Oppression band photo" class="photo-treated hero-bw" style="object-position: center 45%;" />
+        <div class="hero-top-scrim"></div>
+        <div class="hero-scrim"></div>
+        <div class="hero-logo top large"><img src="/images/brand/logo.png" alt="Oppression" /></div>
+        {featured && featured.data.cover && (
+          <div class="hero-album-overlay">
+            <img src={featured.data.cover} alt={`${featured.data.title} cover`} />
+            <p class="hero-album-caption">{featured.data.title} — Out Now</p>
+            <a class="btn cover-cta hero-album-cta" href={albumLink} target="_blank" rel="noopener">Get Your Copy Here !</a>
+          </div>
+        )}
+      </div>
+      <div class="grid-3 full-bleed home-row-gap centered-cols">
+        <div class="press-review-col">
+          <h2 class="section-title">Press reviews</h2>
+          {featuredReview && (
+            <a class="press-review-link" href="/reviews">
+              <p class="press-review-text">
+                "{featuredReview.data.excerpt.replace(/^["“]|["”]$/g, '')}"
+              </p>
+              <div class="small">— {featuredReview.data.outlet}</div>
+            </a>
+          )}
+        </div>
+        <div>
+          <h2 class="section-title">Listen on Spotify</h2>
+          {site.data.spotifyEmbedUrl && (
+            <div class="photo-halo spotify-embed">
+              <iframe
+                src={site.data.spotifyEmbedUrl}
+                width="100%"
+                height="152"
+                frameborder="0"
+                allowfullscreen
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+              ></iframe>
+            </div>
+          )}
+        </div>
+        <div>
+          <h2 class="section-title">Next shows</h2>
+          {nextShows.length > 0 ? (
+            <>
+              {nextShows.map((c) => (
+                <div class="home-next-show">
+                  <div class="big" style="font-size:1.2rem">{c.data.eventName}</div>
+                  <div class="small">{c.data.city}, {countryCode(c.data.country)} — {formatShowDate(c.data.date)}</div>
+                </div>
+              ))}
+              <a class="link" href="/shows">See all shows</a>
+            </>
+          ) : (
+            <p class="small">No show scheduled yet.</p>
+          )}
+        </div>
+      </div>
+      {featured && featured.data.videos.length > 0 && (
+        <>
+          <div class="grid-3 full-bleed home-row-gap" style="margin-top:6.5rem;">
+            {featured.data.videos.map((v) => {
+              const embedUrl = youtubeEmbedUrl(v.url);
+              return embedUrl ? (
+                <div>
+                  <div class="photo-halo video-embed">
+                    <iframe
+                      src={embedUrl}
+                      title={v.title}
+                      frameborder="0"
+                      allowfullscreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      loading="lazy"
+                    ></iframe>
+                  </div>
+                  <div class="small" style="margin-top:0.25rem">{v.title}</div>
+                </div>
+              ) : (
+                <div class="video-ph">{v.title}</div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+</Layout>

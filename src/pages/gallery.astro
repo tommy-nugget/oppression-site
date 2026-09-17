@@ -1,0 +1,100 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getEntry, getEntries } from 'astro:content';
+
+const gallery = await getEntry('gallery', 'main');
+const photos = gallery.data.photos;
+
+const concertRefs = photos.filter((p) => p.relatedConcert).map((p) => p.relatedConcert!);
+const concertEntries = concertRefs.length > 0 ? await getEntries(concertRefs) : [];
+const concertsById = new Map(concertEntries.map((c) => [c.id.replace(/\.md$/, ''), c.data]));
+
+const items = photos.map((p) => {
+  const concert = p.relatedConcert ? concertsById.get(p.relatedConcert.id) : undefined;
+  const contextParts = [
+    p.caption,
+    concert ? `${concert.eventName} — ${concert.city}, ${concert.country}` : undefined,
+  ].filter(Boolean);
+  return {
+    src: p.image,
+    featured: p.featured,
+    caption: contextParts.join(' · '),
+    credit: p.credit,
+  };
+});
+---
+<Layout title="Gallery — Oppression" description="Live and behind-the-scenes photos of Oppression." image={items[0]?.src}>
+  <h1 class="sr-only">Oppression — Gallery</h1>
+  <div class="gallery-masonry">
+    {items.map((item, i) => (
+      <button type="button" class={`gallery-item${item.featured ? ' featured' : ''}`} data-index={i}>
+        <img class="gallery-thumb-img" src={item.src} alt={item.caption || 'Oppression gallery photo'} loading={i < 4 ? 'eager' : 'lazy'} />
+      </button>
+    ))}
+  </div>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
+    <button type="button" class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous photo">&#8249;</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+    <button type="button" class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next photo">&#8250;</button>
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
+</Layout>
+
+<script>
+  const items = Array.from(document.querySelectorAll<HTMLButtonElement>('.gallery-item'));
+  const data = items.map((el) => {
+    const img = el.querySelector('img')!;
+    return { src: img.src, caption: img.alt };
+  });
+
+  const lightbox = document.getElementById('lightbox')!;
+  const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+  const lightboxCaption = document.getElementById('lightbox-caption')!;
+  let current = 0;
+
+  function open(index: number) {
+    current = index;
+    show();
+    lightbox.hidden = false;
+  }
+
+  function show() {
+    const entry = data[current];
+    lightboxImg.src = entry.src;
+    lightboxImg.alt = entry.caption;
+    lightboxCaption.textContent = entry.caption && entry.caption !== 'Oppression gallery photo' ? entry.caption : '';
+  }
+
+  function close() {
+    lightbox.hidden = true;
+    lightboxImg.src = '';
+  }
+
+  function next() {
+    current = (current + 1) % data.length;
+    show();
+  }
+
+  function prev() {
+    current = (current - 1 + data.length) % data.length;
+    show();
+  }
+
+  items.forEach((el, i) => el.addEventListener('click', () => open(i)));
+  document.getElementById('lightbox-close')!.addEventListener('click', close);
+  document.getElementById('lightbox-next')!.addEventListener('click', next);
+  document.getElementById('lightbox-prev')!.addEventListener('click', prev);
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) close();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (lightbox.hidden) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft') prev();
+  });
+</script>

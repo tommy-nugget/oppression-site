@@ -1,0 +1,135 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "concerts"
+    label: "Shows"
+    folder: "src/content/concerts"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "City", name: "city", widget: "string" }
+      - { label: "Country", name: "country", widget: "string" }
+      - { label: "Venue", name: "venue", widget: "string" }
+      - { label: "Event name", name: "eventName", widget: "string" }
+      - { label: "Poster", name: "poster", widget: "image", required: false }
+      - { label: "Ticket link", name: "ticketLink", widget: "string", required: false }
+      - { label: "Lineup / support acts", name: "lineup", widget: "text", required: false }
+
+  - name: "reviews"
+    label: "Reviews"
+    folder: "src/content/reviews"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Outlet", name: "outlet", widget: "string" }
+      - { label: "Language", name: "language", widget: "string", hint: "e.g. FR, EN, GER" }
+      - { label: "Excerpt", name: "excerpt", widget: "text" }
+      - { label: "English translation", name: "translationEn", widget: "text", required: false, hint: "Only needed if the review isn't in English" }
+      - { label: "Link", name: "link", widget: "string" }
+      - { label: "Logo", name: "logo", widget: "image", required: false }
+      - { label: "Logo needs a light background", name: "logoLightBg", widget: "boolean", default: false, hint: "Turn on if the logo file has dark text with no dark-safe background" }
+
+  - name: "discography"
+    label: "Discography"
+    folder: "src/content/discography"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Type", name: "releaseType", widget: "select", options: ["album", "ep", "single", "split"] }
+      - { label: "Release date", name: "releaseDate", widget: "datetime" }
+      - { label: "Cover", name: "cover", widget: "image", required: false }
+      - { label: "Label", name: "label", widget: "string", required: false }
+      - { label: "Description", name: "description", widget: "text", required: false }
+      - label: "Tracklist"
+        name: "tracklist"
+        widget: "list"
+        required: false
+        fields:
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "Duration", name: "duration", widget: "string", hint: "e.g. 04:25" }
+      - label: "Listen / buy links"
+        name: "links"
+        widget: "list"
+        required: false
+        fields:
+          - { label: "Name", name: "name", widget: "string" }
+          - { label: "URL", name: "url", widget: "string" }
+      - label: "Videos"
+        name: "videos"
+        widget: "list"
+        required: false
+        hint: "e.g. full album on Black Metal Promotion, singles on Folter Records"
+        fields:
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "YouTube URL", name: "url", widget: "string" }
+      - { label: "Featured release", name: "featured", widget: "boolean", default: false }
+
+  - name: "merch"
+    label: "Merch"
+    folder: "src/content/merch"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Name", name: "name", widget: "string" }
+      - { label: "Category", name: "category", widget: "select", options: ["music", "apparel", "patch", "pin", "other"] }
+      - { label: "Photo", name: "photo", widget: "image", required: false }
+      - { label: "Description", name: "description", widget: "text", required: false }
+      - { label: "Shop link", name: "shopLink", widget: "string" }
+
+  - name: "members"
+    label: "Members"
+    folder: "src/content/members"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Name", name: "name", widget: "string" }
+      - { label: "Instrument", name: "instrument", widget: "string" }
+      - { label: "Photo", name: "photo", widget: "image", required: false }
+      - { label: "Live photo (shown on hover)", name: "livePhoto", widget: "image", required: false }
+      - { label: "Short bio", name: "bio", widget: "text", required: false }
+
+  - name: "gallery"
+    label: "Gallery"
+    files:
+      - name: "main"
+        label: "Photos"
+        file: "src/content/gallery/main.json"
+        fields:
+          - label: "Photos"
+            name: "photos"
+            widget: "list"
+            summary: "{{fields.category}} — {{fields.image}}"
+            fields:
+              - { label: "Photo", name: "image", widget: "image", media_folder: "public/images/gallery", public_folder: "/images/gallery" }
+              - { label: "Category", name: "category", widget: "select", options: ["live", "backstage", "atmosphere", "promo", "personal"] }
+              - { label: "Related show", name: "relatedConcert", widget: "relation", collection: "concerts", search_fields: ["eventName", "city"], display_fields: ["eventName"], value_field: "{{slug}}", required: false }
+              - { label: "Caption / context", name: "caption", widget: "string", required: false }
+              - { label: "Photo credit", name: "credit", widget: "string", required: false }
+              - { label: "Feature this photo (full-width)", name: "featured", widget: "boolean", default: false }
+
+  - name: "site"
+    label: "Site settings"
+    files:
+      - name: "main"
+        label: "General"
+        file: "src/content/site/main.json"
+        fields:
+          - { label: "Bio text", name: "bioText", widget: "text" }
+          - { label: "Bio photo", name: "bioPhoto", widget: "image", required: false }
+          - { label: "Statement (overlay on Bio hero photo)", name: "statement", widget: "text", required: false }
+          - { label: "Band email", name: "bandEmail", widget: "string" }
+          - { label: "Label email", name: "labelEmail", widget: "string", required: false }
+          - label: "Social & streaming links"
+            name: "socialLinks"
+            widget: "list"
+            fields:
+              - { label: "Name", name: "name", widget: "string" }
+              - { label: "URL", name: "url", widget: "string" }
+          - { label: "Spotify embed URL", name: "spotifyEmbedUrl", widget: "string", required: false, hint: "Paste the src= URL from Spotify's embed code (artist or album)" }

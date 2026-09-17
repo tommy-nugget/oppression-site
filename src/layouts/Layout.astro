@@ -1,0 +1,109 @@
+---
+import { getEntry } from 'astro:content';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  floatingHeader?: boolean;
+  floatingFooter?: boolean;
+}
+const {
+  title = 'Oppression — French Black Metal | Official Website',
+  description = 'Oppression — French black metal band from Bordeaux. Debut album "No Safe Place" out now via Folter Records.',
+  image = '/images/discography/no-safe-place.jpg',
+  floatingHeader = false,
+  floatingFooter = false,
+} = Astro.props;
+
+const ogImageUrl = new URL(image, Astro.site);
+const pageUrl = new URL(Astro.url.pathname, Astro.site);
+
+const site = await getEntry('site', 'main');
+
+const nav = [
+  { href: '/', label: 'home' },
+  { href: '/bio', label: 'bio' },
+  { href: '/shows', label: 'shows' },
+  { href: '/reviews', label: 'reviews' },
+  { href: '/discography', label: 'discography' },
+  { href: '/merch', label: 'merch' },
+  { href: '/gallery', label: 'gallery' },
+  { href: '/contact', label: 'contact' },
+];
+const currentPath = Astro.url.pathname;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={pageUrl} />
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500&family=Playfair+Display:ital,wght@1,500&display=swap" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImageUrl} />
+  <meta property="og:url" content={pageUrl} />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImageUrl} />
+</head>
+<body>
+  <div class="wrap">
+    <header class={floatingHeader ? 'floating' : undefined}>
+      <nav>
+        <img class="nav-cross left" src="/images/brand/oppression-cross.png" alt="" aria-hidden="true" />
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="navlinks">
+          <span></span><span></span><span></span>
+        </button>
+        <ul class="navlinks" id="navlinks">
+          {nav.map((item) => (
+            <li><a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a></li>
+          ))}
+        </ul>
+        <img class="nav-cross right" src="/images/brand/oppression-cross.png" alt="" aria-hidden="true" />
+      </nav>
+    </header>
+    <main class:list={[floatingHeader && 'flush-top', floatingFooter && 'flush-bottom']}>
+      <slot />
+    </main>
+    <footer class={floatingFooter ? 'floating' : undefined}>
+      <ul class="social-list">
+        {site.data.socialLinks.map((s) => (
+          <li><a href={s.url} target="_blank" rel="noopener">{s.name}</a></li>
+        ))}
+      </ul>
+    </footer>
+  </div>
+
+  <script>
+    const toggle = document.getElementById('nav-toggle');
+    const navlinks = document.getElementById('navlinks');
+
+    toggle?.addEventListener('click', () => {
+      const isOpen = navlinks?.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    navlinks?.querySelectorAll('a').forEach((a) => {
+      a.addEventListener('click', () => {
+        navlinks.classList.remove('open');
+        toggle?.setAttribute('aria-expanded', 'false');
+      });
+    });
+  </script>
+</body>
+</html>

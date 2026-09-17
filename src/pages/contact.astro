@@ -1,0 +1,49 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getEntry } from 'astro:content';
+
+const site = await getEntry('site', 'main');
+const bandLinkOrder = ['bandcamp', 'facebook', 'instagram'];
+const bandLinks = bandLinkOrder
+  .map((name) => site.data.socialLinks.find((s) => s.name === name))
+  .filter((s): s is { name: string; url: string } => !!s);
+---
+<Layout title="Contact & Booking — Oppression" description="Booking and press contact for Oppression." image="/images/gallery/promo-goat.jpg">
+  <h1 class="page-title-centered">Contact / Booking</h1>
+
+  <div class="grid-2 contact-grid">
+    <div class="contact-block">
+      <div class="contact-logo"><img src="/images/brand/logo.png" alt="Oppression" /></div>
+      <div class="small">Band</div>
+      <a class="link" href={`mailto:${site.data.bandEmail}`}>{site.data.bandEmail}</a>
+      <ul class="social-list">
+        {bandLinks.map((s) => (
+          <li><a href={s.url} target="_blank" rel="noopener">{s.name}</a></li>
+        ))}
+      </ul>
+    </div>
+    {site.data.labelEmail && (
+      <div class="contact-block">
+        <div class="contact-logo folter-logo"><img src="/images/brand/folter-records-transparent.png" alt="Folter Records" /></div>
+        <div class="small">Label</div>
+        <a class="link" href={`mailto:${site.data.labelEmail}`}>{site.data.labelEmail}</a>
+        <ul class="social-list">
+          <li><a href="https://folter666.de/folter/" target="_blank" rel="noopener">website</a></li>
+          <li><a href="https://folter666shop.de/" target="_blank" rel="noopener">shop</a></li>
+          <li><a href="https://www.facebook.com/FolterRecordsGermany" target="_blank" rel="noopener">facebook</a></li>
+          <li><a href="https://www.instagram.com/folterrecordsgermany/" target="_blank" rel="noopener">instagram</a></li>
+          <li><a href="https://www.youtube.com/@folterrecords" target="_blank" rel="noopener">youtube</a></li>
+        </ul>
+      </div>
+    )}
+  </div>
+
+  <div class="wide">
+    <div class="wide-inner">
+      <div class="photo-halo photo-zoom" style="max-width:820px; margin:4rem auto 0;">
+        <img src="/images/gallery/promo-goat.jpg" alt="Oppression" class="photo-treated" style="width:100%; height:auto; display:block;" />
+      </div>
+      <p class="war-cry">Hail the Oppression !</p>
+    </div>
+  </div>
+</Layout>
