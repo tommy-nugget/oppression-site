@@ -5,7 +5,12 @@ import { getCollection, getEntry } from 'astro:content';
 const concerts = await getCollection('concerts');
 const now = new Date();
 const upcoming = concerts.filter((c) => c.data.date >= now).sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
-const nextShows = upcoming.slice(0, 2);
+// Shows still under embargo ("Announced Soon") are pushed behind fully-announced
+// ones so they don't bump more sellable shows out of this teaser — but they can
+// still fill a remaining slot rather than leaving the block looking sparse.
+const announcedShows = upcoming.filter((c) => !c.data.announcedSoon);
+const teaserShows = upcoming.filter((c) => c.data.announcedSoon);
+const nextShows = [...announcedShows, ...teaserShows].slice(0, 2);
 
 const releases = await getCollection('discography');
 const sortedReleases = releases.sort((a, b) => b.data.releaseDate.getTime() - a.data.releaseDate.getTime());

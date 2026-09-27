@@ -4,4 +4,5 @@ city: "TBA"
 country: "France"
 venue: "TBA"
 eventName: "Announced Soon"
+announcedSoon: true
 ---

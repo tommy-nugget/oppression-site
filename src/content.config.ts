@@ -25,6 +25,7 @@ const concerts = defineCollection({
     poster: z.string().optional(),
     ticketLink: z.string().url().optional(),
     lineup: z.string().optional(),
+    announcedSoon: z.boolean().default(false),
   }),
 });
 
