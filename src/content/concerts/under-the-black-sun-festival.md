@@ -4,5 +4,6 @@ city: "Friesack"
 country: "Germany"
 venue: "Under the Black Sun Festival"
 eventName: "Under the Black Sun Festival"
+poster: "/images/posters/under-the-black-sun-festival.jpg"
 ticketLink: "https://folter666shop.de/UTBS/"
 ---

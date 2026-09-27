@@ -52,7 +52,7 @@ h2.section-title-framed { display: table; margin: 5rem auto 2rem; font-weight: 4
 h2.section-title-framed:first-child { margin-top: 0; }
 p.lead { color: var(--muted); font-size: 0.95rem; max-width: 60ch; line-height: 1.6; margin-bottom: 1.1rem; }
 p.lead:last-child { margin-bottom: 0; }
-p.lead.bio-copy { font-size: 1.35rem; max-width: 70ch; line-height: 1.75; margin-left: auto; margin-right: auto; text-align: justify; }
+p.lead.bio-copy { font-size: 1.35rem; max-width: 90ch; line-height: 1.75; margin-left: auto; margin-right: auto; text-align: justify; }
 
 .grid-2 { display: grid; grid-template-columns: 1fr; gap: 2rem; }
 .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
@@ -205,7 +205,7 @@ p.lead.bio-copy { font-size: 1.35rem; max-width: 70ch; line-height: 1.75; margin
 .cover-thumb-soft-zoom:hover { transform: scale(1.05); }
 .cover-cta { display: inline-block; }
 .lead.justify { text-align: justify; }
-p.lead.discography-description { font-size: 1.05rem; line-height: 1.6; max-width: none; }
+p.lead.discography-description { font-size: 1.25rem; line-height: 1.6; max-width: none; }
 @media (max-width: 800px) { .discography-row { grid-template-columns: 1fr; } }
 
 .tracklist-grid { display: grid; grid-template-columns: repeat(3, max-content); grid-template-rows: repeat(3, auto); grid-auto-flow: column; justify-content: space-between; column-gap: 2.5rem; row-gap: 0.6rem; margin-top: 2.5rem; padding-left: 0; list-style-position: inside; font-size: 1.05rem; }
@@ -232,6 +232,8 @@ p.lead.discography-description { font-size: 1.05rem; line-height: 1.6; max-width
 .shows-list.past .shows-row { opacity: 0.75; }
 button.shows-row-clickable { background: none; border: none; border-bottom: 1px solid var(--line); width: 100%; font: inherit; text-align: inherit; color: inherit; cursor: pointer; box-sizing: border-box; }
 .poster-icon { margin-left: 0.4rem; vertical-align: -2px; color: var(--muted); }
+.poster-icon-btn { background: none; border: none; padding: 0; margin: 0; cursor: pointer; line-height: 0; }
+.poster-icon-btn:hover .poster-icon, .poster-icon-btn:focus-visible .poster-icon { color: var(--accent); }
 .shows-lineup { text-transform: none; letter-spacing: 0.01em; font-size: 0.75rem; color: var(--muted); opacity: 0.75; margin-top: 0.25rem; }
 button.shows-row-clickable:hover .poster-icon { color: var(--accent); }
 @media (max-width: 700px) {

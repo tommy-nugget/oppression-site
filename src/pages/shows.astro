@@ -64,7 +64,23 @@ const eventSchemas = upcoming.map((c) => ({
           <div class="shows-row">
             <div class="shows-date">{formatDate(c.data.date)}</div>
             <div class="shows-place">{c.data.city}, {countryCode(c.data.country)}</div>
-            <div class="shows-event">{c.data.eventName}</div>
+            <div class="shows-event">
+              {c.data.eventName}
+              {c.data.poster && (
+                <button
+                  type="button"
+                  class="poster-icon-btn"
+                  data-poster={c.data.poster}
+                  data-caption={`${c.data.eventName} — ${c.data.city}, ${countryCode(c.data.country)} — ${formatDate(c.data.date)}`}
+                  aria-label="View poster"
+                >
+                  <svg class="poster-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                </button>
+              )}
+            </div>
             <div class="shows-action">
               {c.data.ticketLink
                 ? <a class="shows-ticket-link" href={c.data.ticketLink} target="_blank" rel="noopener">Tickets</a>
@@ -123,7 +139,7 @@ const eventSchemas = upcoming.map((c) => ({
 </Layout>
 
 <script>
-  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.shows-row-clickable'));
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.shows-row-clickable, .poster-icon-btn'));
   const lightbox = document.getElementById('poster-lightbox')!;
   const lightboxImg = document.getElementById('poster-lightbox-img') as HTMLImageElement;
   const lightboxCaption = document.getElementById('poster-lightbox-caption')!;

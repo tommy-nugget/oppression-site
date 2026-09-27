@@ -9,9 +9,7 @@ spotifyAlbumId: "1A5m9vVnr7iu2yy3kmqj3h"
 description: |
   "Hope… Believe… There is no safe place for you!" Great things are on the horizon with the debut of French band OPPRESSION and their vehement, multifaceted, and profound black metal of the highest order!
 
-  Old buddies, scouring concert halls and bars, G.S.V (vocals) and Tom L (guitar) decided to form a band together, allowing them to control the composition and direction from start to finish. Faced with a growing number of ambient-oriented releases, they wanted to raise the tone with a very straight forward project.
-
-  Speed, power, and a touch of melody (added with some healthy hate) – this is how they laid the foundations for OPPRESSION, quickly joined by Predark (guitar), and two well-known musicians from the Bordeaux scene : the brothers John (Otargos, Lifestream) on drums, and Désert (Lifestream) on bass.
+  Faced with a growing number of ambient-oriented releases, they wanted to raise the tone with a very straight forward project. Speed, power, and a touch of melody (added with some healthy hate) – this is how they laid the foundations for OPPRESSION.
 
   OPPRESSIONs lyrics are mostly about religion and a little bit about constatation on the society evolution. Only the last song is different, dealing with sex, drugs, and rock 'n' roll (so as not to lose sight of the important things).
 
