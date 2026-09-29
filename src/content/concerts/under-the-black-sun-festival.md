@@ -1,5 +1,5 @@
 ---
-date: 2027-07-08
+date: 2027-07-01
 city: "Friesack"
 country: "Germany"
 venue: "Under the Black Sun Festival"
